@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Women Safety SOS Button</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-image: url('https://csrbox.org/company/proj_img/1598254332women%20safety.png'); /* truncated for brevity */
+      background-size: cover;
+      background-position: center;
+      animation: fadeIn 2s ease-in-out;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    #sosButton {
+      background-color: red;
+      color: white;
+      font-size: 1.8em;
+      padding: 25px 60px;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #sosButton:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255, 0, 0, 1);
+    }
+
+    #cancelButton, #smsButton, #copyButton {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #cancelButton { background-color: #333; color: white; }
+    #smsButton { background-color: #28a745; color: white; }
+    #copyButton { background-color: #007bff; color: white; }
+
+    #cancelButton:hover { background-color: #555; }
+    #smsButton:hover { background-color: #218838; }
+    #copyButton:hover { background-color: #0056b3; }
+
+    #locationDisplay {
+      margin-top: 20px;
+      font-size: 1em;
+      color: #fff;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.6em; }
+      #sosButton { padding: 20px 40px; font-size: 1.4em; }
+      #cancelButton, #smsButton, #copyButton { font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="container">
+    <h1>Emergency SOS Alert</h1>
+    <button id="sosButton">SOS</button>
+    <div>
+      <button id="cancelButton">Cancel</button>
+      <button id="smsButton">Send SMS Now</button>
+      <button id="copyButton">Copy Location</button>
+    </div>
+    <div id="locationDisplay">Location: waiting for GPS...</div>
+  </div>
+
+  <script>
+    let alarmContext, oscillator, flashingInterval;
+    let watchId = null;
+    let lat = null, lon = null;
+
+    const sosButton = document.getElementById('sosButton');
+    const cancelButton = document.getElementById('cancelButton');
+    const smsButton = document.getElementById('smsButton');
+    const copyButton = document.getElementById('copyButton');
+    const locationDisplay = document.getElementById('locationDisplay');
+
+    let pressTimer;
+
+    sosButton.addEventListener('mousedown', startPress);
+    sosButton.addEventListener('touchstart', startPress);
+    sosButton.addEventListener('mouseup', cancelPress);
+    sosButton.addEventListener('mouseleave', cancelPress);
+    sosButton.addEventListener('touchend', cancelPress);
+
+    cancelButton.addEventListener('click', stopAlarm);
+    smsButton.addEventListener('click', sendSMS);
+    copyButton.addEventListener('click', copyLocation);
+
+    function startPress() {
+      pressTimer = setTimeout(triggerAlarm, 700);
+    }
+
+    function cancelPress() {
+      clearTimeout(pressTimer);
+    }
+
+    function triggerAlarm() {
+      playAlarm();
+      flashScreen();
+      startVibration();
+      trackLocation();
+    }
+
+    function playAlarm() {
+      alarmContext = new (window.AudioContext || window.webkitAudioContext)();
+      oscillator = alarmContext.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, alarmContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(1200, alarmContext.currentTime + 0.3);
+      oscillator.connect(alarmContext.destination);
+      oscillator.start();
+      oscillator.stop(alarmContext.currentTime + 0.3);
+      setInterval(() => {
+        oscillator = alarmContext.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(600, alarmContext.currentTime);
+        oscillator.frequency.linearRampToValueAtTime(1200, alarmContext.currentTime + 0.3);
+        oscillator.connect(alarmContext.destination);
+        oscillator.start();
+        oscillator.stop(alarmContext.currentTime + 0.3);
+      }, 400);
+    }
+
+    function flashScreen() {
+      flashingInterval = setInterval(() => {
+        document.body.style.backgroundColor = document.body.style.backgroundColor === 'red' ? 'black' : 'red';
+      }, 300);
+    }
+
+    function startVibration() {
+      if (navigator.vibrate) navigator.vibrate([300, 200, 300, 200]);
+    }
+
+    function stopAlarm() {
+      clearInterval(flashingInterval);
+      document.body.style.backgroundColor = '';
+      if (alarmContext) alarmContext.close();
+      if (navigator.vibrate) navigator.vibrate(0);
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    }
+
+    function trackLocation() {
+      if ('geolocation' in navigator) {
+        watchId = navigator.geolocation.watchPosition(
+          pos => {
+            lat = pos.coords.latitude;
+            lon = pos.coords.longitude;
+            locationDisplay.textContent = `Location: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+          },
+          err => {
+            locationDisplay.textContent = 'Unable to get location';
+          }
+        );
+      } else {
+        locationDisplay.textContent = 'Geolocation not supported';
+      }
+    }
+
+    function sendSMS() {
+      if (lat && lon) {
+        const msg = encodeURIComponent(`I am in danger! My location: https://maps.google.com/?q=${lat},${lon}`);
+        window.location.href = `sms:?body=${msg}`;
+      } else {
+        alert('Location not yet available. Please wait...');
+      }
+    }
+
+    function copyLocation() {
+      if (lat && lon) {
+        const text = `https://maps.google.com/?q=${lat},${lon}`;
+        navigator.clipboard.writeText(text);
+        alert('Location copied to clipboard');
+      } else {
+        alert('Location not yet available. Please wait...');
+      }
+    }
+  </script>
+</body>
+</html>

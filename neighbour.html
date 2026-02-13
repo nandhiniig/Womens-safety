@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neighbourhood Scores</title>
+    <link rel="stylesheet" href="neighbour.css">
+    <header class="banner">Neighbourhood Safety Portal</header>
+
+</head>
+<body>
+
+
+  <section class="main-section">
+    <div class="gif-side">
+  <video autoplay loop muted playsinline>
+    <source src="char.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+
+    
+
+    <div class="container">
+        <h1>Neighbourhood Scores</h1>
+        <h2>Share your thoughts about your neighbouhood with us!</h2>
+        <div class="neighbourhood-input">
+            <label for="neighbourhood-name">Neighbourhood Name:</label>
+            <input type="text" id="neighbourhood-name" placeholder="Enter neighbourhood name">
+        </div>
+
+        <div class="criteria-inputs">
+            <div>
+                <label for="safety">Safety:</label>
+                <input type="number" id="safety" min="1" max="10" placeholder="Score (1-10)">
+            </div>
+
+            <div>
+                <label for="amenities">Amenities:</label>
+                <input type="number" id="amenities" min="1" max="10" placeholder="Score (1-10)">
+            </div>
+
+            <div>
+                <label for="cost-of-living">Cost of Living:</label>
+                <input type="number" id="cost-of-living" min="1" max="10" placeholder="Score (1-10)">
+            </div>
+        </div>
+        <div>
+            <label for="womens-safety">Women's Safety:</label>
+            <input type="number" id="womens-safety" min="1" max="10" placeholder="Score (1-10)">
+        </div>
+        
+        <button id="find-nearest-help">Find Nearest Help</button>
+<div id="map"></div> <!-- Google Map container -->
+
+<div>
+    <label for="report-issue">Report an Unsafe Area:</label>
+    <textarea id="report-issue" placeholder="Describe the issue"></textarea>
+    <button id="submit-report">Submit Report</button>
+</div>
+<ul id="report-list"></ul> <!-- List unsafe areas -->
+
+        <button id="add-score">Add Neighbourhood</button>
+
+        <h2>Neighbourhood Scores List</h2>
+        <ul id="neighbourhood-list">
+            <!-- Neighbourhoods with scores will be added here -->
+        </ul>
+    </div>
+
+    <script>document.getElementById('add-score').addEventListener('click', function() {
+        // Get values from input fields
+        const neighbourhoodName = document.getElementById('neighbourhood-name').value;
+        const safetyScore = document.getElementById('safety').value;
+        const amenitiesScore = document.getElementById('amenities').value;
+        const costOfLivingScore = document.getElementById('cost-of-living').value;
+    
+        // Validate inputs
+        if (!neighbourhoodName || !safetyScore || !amenitiesScore || !costOfLivingScore) {
+            alert("Please fill out all fields.");
+            return;
+        }
+    
+        // Create new list item with neighbourhood name and scores
+        const neighbourhoodList = document.getElementById('neighbourhood-list');
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <strong>${neighbourhoodName}</strong>: 
+            Safety - ${safetyScore}, 
+            Amenities - ${amenitiesScore}, 
+            Cost of Living - ${costOfLivingScore}
+        `;
+    
+        // Append the new neighbourhood to the list
+        neighbourhoodList.appendChild(listItem);
+    
+        // Clear input fields
+        document.getElementById('neighbourhood-name').value = '';
+        document.getElementById('safety').value = '';
+        document.getElementById('amenities').value = '';
+        document.getElementById('cost-of-living').value = '';
+    });
+    const womensSafetyScore = document.getElementById('womens-safety').value;
+    if (!womensSafetyScore) {
+        alert("Please enter the Women's Safety score.");
+        return;
+    }
+    listItem.innerHTML += `, Women's Safety - ${womensSafetyScore}`;
+    document.getElementById('submit-report').addEventListener('click', function() {
+        const reportText = document.getElementById('report-issue').value;
+        if (!reportText) {
+            alert("Please describe the issue.");
+            return;
+        }
+        const reportList = document.getElementById('report-list');
+        const reportItem = document.createElement('li');
+        reportItem.textContent = reportText;
+        reportList.appendChild(reportItem);
+        document.getElementById('report-issue').value = ''; // Clear input
+    });
+    </script>
+</body>
+</html>

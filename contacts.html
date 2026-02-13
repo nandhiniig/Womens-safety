@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Contacts</title>
+<style>
+/* ------------------ Base & Wrapper Enhancements ------------------ */
+body { 
+  /* Updated Background Gradient */
+  background: linear-gradient(135deg, #6366f1, #a855f7); 
+  font-family: 'Poppins', sans-serif; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0; /* Ensures body takes full height without scrollbars */
+}
+
+.wrapper { 
+  width: 550px; /* Increased width for side-by-side fields */
+  max-width: 90%;
+  margin: auto; 
+  background: #fff; 
+  padding: 40px 50px; /* Enhanced Padding */
+  border-radius: 20px; /* Softer rounded corners */
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2); /* Stronger lift shadow */
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Subtle highlight border */
+  animation: fadeIn 0.8s ease-out; /* Added fade-in animation */
+}
+
+/* ------------------ Header Styling ------------------ */
+h1 { 
+  text-align:center; 
+  color: #4f46e5; /* Deeper purple for stronger impact */
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 25px; /* Added spacing below the header */
+}
+
+/* ------------------ Input Fields ------------------ */
+.contact-row { 
+  display:flex; 
+  gap:15px; /* Increased space between name/phone */
+  margin-bottom:15px; /* Increased space between rows */
+}
+
+.contact-row input { 
+  flex:1; 
+  padding:14px 18px; /* Larger padding for a better feel */
+  border-radius:12px;
+  border:1px solid #e5e7eb; /* Lighter default border */
+  outline: none; 
+  font-size: 16px;
+  transition: all 0.3s ease;
+  /* Subtle inner shadow for depth */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Placeholder Styling */
+.contact-row input::placeholder {
+    color: #9ca3af;
+    font-size: 15px;
+}
+
+/* Enhanced Focus State (The subtle glow) */
+.contact-row input:focus {
+  border-color: #6366f1;
+  /* Subtle focus glow */
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 
+              inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #f9fafb; /* Slight change in background on focus */
+}
+
+/* ------------------ Submit Button ------------------ */
+.submit { 
+  width:100%; 
+  padding:16px; /* Larger padding */
+  margin-top:20px; /* Space above button */
+  border:none; 
+  border-radius:12px; 
+  /* Dynamic Gradient Background */
+  background: linear-gradient(90deg, #6366f1, #a855f7); 
+  color:#fff; 
+  font-size: 18px; 
+  font-weight:600; 
+  cursor:pointer; 
+  transition:all 0.3s ease; 
+  /* Lift shadow */
+  box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+}
+
+.submit:hover { 
+  background: linear-gradient(90deg, #4f46e5, #d946ef); 
+  transform: translateY(-3px); /* Lift button on hover */
+  /* Intense shadow for the hover effect */
+  box-shadow: 0 12px 25px rgba(168, 85, 247, 0.5);
+}
+
+/* ------------------ Animation (Keyframe needs to be outside the style block if in a separate file, but works fine here) ------------------ */
+@keyframes fadeIn {
+  0% {opacity:0; transform: translateY(-30px);}
+  100% {opacity:1; transform: translateY(0);}
+}
+
+/* ------------------ Responsive Adjustments ------------------ */
+@media (max-width: 550px) {
+    .wrapper {
+        padding: 30px 20px;
+    }
+    .contact-row {
+        flex-direction: column; /* Stacks inputs vertically on small screens */
+        gap: 10px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+<h1>Emergency Contacts</h1>
+<form id="contactsForm">
+  <div class="contact-row">
+    <input type="text" name="name1" placeholder="Contact Name" required>
+    <input type="text" name="phone1" placeholder="Phone Number" required>
+  </div>
+  <div class="contact-row">
+    <input type="text" name="name2" placeholder="Contact Name">
+    <input type="text" name="phone2" placeholder="Phone Number">
+  </div>
+  <div class="contact-row">
+    <input type="text" name="name3" placeholder="Contact Name">
+    <input type="text" name="phone3" placeholder="Phone Number">
+  </div>
+  <div class="contact-row">
+    <input type="text" name="name4" placeholder="Contact Name">
+    <input type="text" name="phone4" placeholder="Phone Number">
+  </div>
+  <div class="contact-row">
+    <input type="text" name="name5" placeholder="Contact Name">
+    <input type="text" name="phone5" placeholder="Phone Number">
+  </div>
+  <input type="submit" class="submit" value="Save Contacts">
+</form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("contactsForm");
+  const urlParams = new URLSearchParams(window.location.search);
+  const user_id = urlParams.get("user_id");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!user_id) return alert("User ID missing. Please login again.");
+
+    const contacts = [];
+    for (let i=1; i<=5; i++) {
+      const name = form[`name${i}`].value.trim();
+      const phone = form[`phone${i}`].value.trim();
+      if(name && phone) contacts.push({name, phone});
+    }
+
+    if(contacts.length === 0) return alert("Add at least one contact");
+
+    try {
+      const res = await fetch("/save-contacts", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({user_id, contacts})
+      });
+      const text = await res.text();
+      alert(text);
+    } catch(err) {
+      console.error(err);
+      alert("Error saving contacts");
+    }
+  });
+});
+</script>
+
+</body>
+</html>

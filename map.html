@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Women Safety Tracker</title>
+  <link rel="stylesheet" href="map1.css">
+  <style>
+    
+        body::before {
+            content: "";
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+           
+            background-image: url("young-depressed-woman-domestic-violence-600nw-2353494163.webp");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            filter: blur(7px) brightness(0.9);
+            z-index: -1; /* Pushes the background layer behind the content */
+            transform: scale(1.05);
+        }
+
+       
+    
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f9f9f9;
+      color: #333;
+    }
+    #map-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    #info-box {
+      background: white;
+      padding: 15px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    h2 {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📍 WOMEN SAFETY (Click a State)</h2>
+
+  <div id="map-container">
+    <object type="image/svg+xml" data="indiaHigh.svg" id="indiaMap"></object>
+  </div>
+
+  <div id="info-box">Click a state to see women safety data</div>
+
+  <script>
+    const infoBox = document.getElementById("info-box");
+    const indiaMap = document.getElementById("indiaMap");
+
+    const stateData = {
+        "IN-AP": { name: "Andhra Pradesh", crimeRate2018: 63.2, rank2018: 9 },
+  "IN-AR": { name: "Arunachal Pradesh", crimeRate2018: 46.4, rank2018: 17 },
+  "IN-AS": { name: "Assam", crimeRate2018: 166.0, rank2018: 2 },
+  "IN-BR": { name: "Bihar", crimeRate2018: 56.6, rank2018: 13 },
+  "IN-CT": { name: "Chhattisgarh", crimeRate2018: 78.9, rank2018: 8 },
+  "IN-GA": { name: "Goa", crimeRate2018: 57.9, rank2018: 12 },
+  "IN-GJ": { name: "Gujarat", crimeRate2018: 28.3, rank2018: 25 },
+  "IN-HR": { name: "Haryana", crimeRate2018: 73.2, rank2018: 10 },
+  "IN-HP": { name: "Himachal Pradesh", crimeRate2018: 58.7, rank2018: 11 },
+  "IN-JH": { name: "Jharkhand", crimeRate2018: 53.4, rank2018: 14 },
+  "IN-KA": { name: "Karnataka", crimeRate2018: 67.2, rank2018: 7 },
+  "IN-KL": { name: "Kerala", crimeRate2018: 681.1, rank2018: 1 },
+  "IN-MP": { name: "Madhya Pradesh", crimeRate2018: 145.6, rank2018: 3 },
+  "IN-MH": { name: "Maharashtra", crimeRate2018: 52.3, rank2018: 15 },
+  "IN-MN": { name: "Manipur", crimeRate2018: 33.1, rank2018: 23 },
+  "IN-ML": { name: "Meghalaya", crimeRate2018: 31.7, rank2018: 24 },
+  "IN-MZ": { name: "Mizoram", crimeRate2018: 41.2, rank2018: 18 },
+  "IN-NL": { name: "Nagaland", crimeRate2018: 29.8, rank2018: 26 },
+  "IN-OD": { name: "Odisha", crimeRate2018: 91.0, rank2018: 6 },
+  "IN-PB": { name: "Punjab", crimeRate2018: 37.4, rank2018: 20 },
+  "IN-RJ": { name: "Rajasthan", crimeRate2018: 153.0, rank2018: 4 },
+  "IN-SK": { name: "Sikkim", crimeRate2018: 36.9, rank2018: 21 },
+  "IN-TN": { name: "Tamil Nadu", crimeRate2018: 33.2, rank2018: 22 },
+  "IN-TG": { name: "Telangana", crimeRate2018: 78.5, rank2018: 5 },
+  "IN-TR": { name: "Tripura", crimeRate2018: 48.1, rank2018: 16 },
+  "IN-UP": { name: "Uttar Pradesh", crimeRate2018: 36.2, rank2018: 19 },
+  "IN-UT": { name: "Uttarakhand", crimeRate2018: 28.1, rank2018: 27 },
+  "IN-WB": { name: "West Bengal", crimeRate2018: 30.3, rank2018: 25 },
+
+  // Union Territories
+  "IN-AN": { name: "Andaman & Nicobar Islands", crimeRate2018: 72.6, rank2018: 11 },
+  "IN-CH": { name: "Chandigarh", crimeRate2018: 118.3, rank2018: 3 },
+  "IN-DN": { name: "Dadra & Nagar Haveli and Daman & Diu", crimeRate2018: 44.5, rank2018: 17 },
+  "IN-DL": { name: "Delhi", crimeRate2018: 566.8, rank2018: 2 },
+  "IN-JK": { name: "Jammu & Kashmir", crimeRate2018: 38.6, rank2018: 20 },
+  "IN-LA": { name: "Ladakh", crimeRate2018: 25.3, rank2018: 28 },
+  "IN-LD": { name: "Lakshadweep", crimeRate2018: 10.3, rank2018: 29 },
+  "IN-PY": { name: "Puducherry", crimeRate2018: 65.1, rank2018: 8 }
+      
+    };
+
+    indiaMap.addEventListener("load", () => {
+      const svgDoc = indiaMap.contentDocument;
+      const states = svgDoc.querySelectorAll("path");
+
+      states.forEach(st => {
+        const id = st.getAttribute("id");
+        st.style.fill = "#d3d3d3";
+        st.style.transition = "fill 0.2s ease";
+
+        st.addEventListener("mouseover", () => {
+          if (stateData[id]) {
+            const rate = stateData[id].crimeRate2018;
+            let hoverColor = "#4caf50"; // safe = green
+            if (rate > 150) hoverColor = "#ff4d4d"; // high crime = red
+            else if (rate > 70) hoverColor = "#ffb84d"; // moderate = orange
+            st.style.fill = hoverColor;
+          }
+        });
+
+        st.addEventListener("mouseout", () => {
+          st.style.fill = "#d3d3d3";
+        });
+
+        st.addEventListener("click", () => {
+          if (stateData[id]) {
+            const data = stateData[id];
+            infoBox.innerHTML = `
+              <h3>${data.name}</h3>
+              ⚠️ <b>Crime Rate (per 100,000 women):</b> ${data.crimeRate2018}<br>
+              🏆 <b>Rank:</b> ${data.rank2018}
+            `;
+          } else {
+            infoBox.innerHTML = `<h3>${id}</h3>No data available.`;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
